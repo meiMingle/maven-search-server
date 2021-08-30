@@ -100,24 +100,18 @@
         initVersionUI();
         // download icon
         $('.download,.icon').click(function (event) {
-            console.log(event);
             if ( event && event.stopPropagation )
-                event.stopPropagation();        //因此它支持W3C的stopPropagation()方法
+                event.stopPropagation();
             else
-                window.event.cancelBubble = true;        //否则，我们需要使用IE的方式来取消事件冒泡
+                window.event.cancelBubble = true;
 
-
-            //https://repo1.maven.org/maven2/org/jsoup/jsoup/1.14.2/jsoup-1.14.2.jar
-            //org.apache.zookeeper/zookeeper/3.7.0
             var attr = $(this).attr("data-url");
-            console.log(attr);
             var data=attr.split('/');
             var url ="https://repo1.maven.org/maven2/";
             url+=data[0].replaceAll('.','/')+'/';
             url+=data[1];
             url+='/';
             url+=data[2]+'/'+data[1]+'-'+data[2]+'.jar';
-            console.log(url);
             window.location=url;
 
         });
