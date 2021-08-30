@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 public class ArtifactInfoStore implements InitializingBean {
     static final Logger logger = LoggerFactory.getLogger(ArtifactInfoStore.class);
 
-    @Value("${index.repository.path}/version.txt")
+    @Value("${versionStoreFile}")
     String versionStoreFile;
     // 版本下载统计
     private Map<String, AtomicInteger> versionCounts = new ConcurrentHashMap<>();

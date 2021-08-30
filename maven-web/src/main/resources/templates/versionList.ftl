@@ -48,12 +48,16 @@
     <tbody>
     <tr>
         <td class="ten wide">版本</td>
-        <td class="right aligned">下载次数</td>
+        <td class="right aligned">下载</td>
+        <td class="right aligned">引用次数</td>
         <td class="right aligned">发布时间</td>
     </tr>
     <#list items as item>
     <tr onclick="doFold($(this))">
         <td>${item.version}</td>
+        <td class="right aligned">
+            <i class="download icon" data-url="${item.groupId}/${item.artifactId}/${item.version}" style="z-index: 1000;color: darkgray;"></i>
+        </td>
         <td class="right aligned">${item.attributes.versionCount}</td>
         <td class="right aligned"> ${item.lastModified?number_to_datetime?string("yyyy-MM-dd")!}</td>
     </tr>
@@ -94,6 +98,29 @@
 <script>
     $(function () {
         initVersionUI();
+        // download icon
+        $('.download,.icon').click(function (event) {
+            console.log(event);
+            if ( event && event.stopPropagation )
+                event.stopPropagation();        //因此它支持W3C的stopPropagation()方法
+            else
+                window.event.cancelBubble = true;        //否则，我们需要使用IE的方式来取消事件冒泡
+
+
+            //https://repo1.maven.org/maven2/org/jsoup/jsoup/1.14.2/jsoup-1.14.2.jar
+            //org.apache.zookeeper/zookeeper/3.7.0
+            var attr = $(this).attr("data-url");
+            console.log(attr);
+            var data=attr.split('/');
+            var url ="https://repo1.maven.org/maven2/";
+            url+=data[0].replaceAll('.','/')+'/';
+            url+=data[1];
+            url+='/';
+            url+=data[2]+'/'+data[1]+'-'+data[2]+'.jar';
+            console.log(url);
+            window.location=url;
+
+        });
     })
 
     function showDocFull() {
@@ -105,5 +132,14 @@
         }else {
             $(".button.unfold span.text").text("收起")
         }
+    }
+
+
+    function download(e) {
+          //如果提供了事件对象，则这是一个非IE浏览器
+        if ( e && e.stopPropagation )
+            e.stopPropagation();        //因此它支持W3C的stopPropagation()方法
+        else
+            window.event.cancelBubble = true;        //否则，我们需要使用IE的方式来取消事件冒泡
     }
 </script>

@@ -68,6 +68,8 @@ public class MavenSearchControl {
         }
         results.parallelStream().forEach(r -> {
             ArtifactIndexInfo item = r.getItem();
+
+
             if (docService.existsInexDoc(item.groupId, item.artifactId)) {
                 String indexDoc = docService.getIndexDoc(item.groupId, item.artifactId);
                 indexDoc = indexDoc.substring(0, Math.min(100, indexDoc.length()));

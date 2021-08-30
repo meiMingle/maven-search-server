@@ -92,10 +92,16 @@
 			<version>2.1.4</version>
 		</dependency>-->
 
+		<!--<dependency>-->
+			<!--<groupId>org.commonmark</groupId>-->
+			<!--<artifactId>commonmark</artifactId>-->
+			<!--<version>0.18.0</version>-->
+		<!--</dependency>-->
+		<!--https://www.5axxw.com/wiki/content/qu588d#-->
 		<dependency>
 			<groupId>org.commonmark</groupId>
-			<artifactId>commonmark</artifactId>
-			<version>0.17.2</version>
+			<artifactId>commonmark-ext-gfm-tables</artifactId>
+			<version>0.18.0</version>
 		</dependency>
 
 	</dependencies>
