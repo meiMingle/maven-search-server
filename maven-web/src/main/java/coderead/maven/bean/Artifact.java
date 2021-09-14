@@ -12,7 +12,9 @@ public class Artifact {
     private Date lastModify;
 
     private byte indexClass;    //0 待构建  1构建中 2构建成功 3构建失败
-
+    String officialSite; //官网站点
+    String docSite; // 文档站点
+    String sourceSite;// 源码站点
     private String describe;
 
     private Date dateLastModify;
@@ -57,6 +59,30 @@ public class Artifact {
         this.indexClass = indexClass;
     }
 
+    public String getOfficialSite() {
+        return officialSite;
+    }
+
+    public void setOfficialSite(String officialSite) {
+        this.officialSite = officialSite;
+    }
+
+    public String getDocSite() {
+        return docSite;
+    }
+
+    public void setDocSite(String docSite) {
+        this.docSite = docSite;
+    }
+
+    public String getSourceSite() {
+        return sourceSite;
+    }
+
+    public void setSourceSite(String sourceSite) {
+        this.sourceSite = sourceSite;
+    }
+
     public String getDescribe() {
         return describe;
     }
@@ -72,6 +98,7 @@ public class Artifact {
     public void setDateLastModify(Date dateLastModify) {
         this.dateLastModify = dateLastModify;
     }
+
 
     public String getGroupId() {
         return artifact.split(":")[0];

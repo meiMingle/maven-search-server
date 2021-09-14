@@ -1,6 +1,7 @@
 package coderead.maven.bean;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ArtifactVersion {
     private Integer id;
@@ -12,6 +13,8 @@ public class ArtifactVersion {
     private Date lastModify;
 
     private Integer count;
+
+    private AtomicInteger incrementCount=new AtomicInteger(0);
 
     private Date dateLastModify;
 
@@ -61,5 +64,13 @@ public class ArtifactVersion {
 
     public void setDateLastModify(Date dateLastModify) {
         this.dateLastModify = dateLastModify;
+    }
+
+    public AtomicInteger getIncrementCount() {
+        return incrementCount;
+    }
+
+    public void setIncrementCount(AtomicInteger incrementCount) {
+        this.incrementCount = incrementCount;
     }
 }

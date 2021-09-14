@@ -3,6 +3,8 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
+import coderead.maven.bean.Artifact;
+import coderead.maven.dao.ArtifactMapper;
 import coderead.maven.service.ArtifactInfoStore;
 import coderead.maven.bean.ArtifactIndexInfo;
 import coderead.maven.search.IndexShortSearch;
@@ -11,13 +13,19 @@ import org.apache.maven.index.ArtifactInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +42,8 @@ public class ApiControl {
     MavenIndexManager indexManager;
     @Autowired
     ArtifactInfoStore versionCountStore;
+    @Autowired
+    ArtifactMapper artifactMapper;
 
     @RequestMapping("/search")
     @ResponseBody
@@ -54,6 +64,16 @@ public class ApiControl {
     public List<SimpleArtifactInfo> getVersions(String groupId, String artifactId) {
         try {
             List<ArtifactInfo> items = indexManager.search(groupId, artifactId);
+            if (items.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            ArtifactInfo fastArtifact = items.get(0);
+            Artifact artifact = artifactMapper.getArtifact(fastArtifact.getGroupId() + ":" + fastArtifact.getArtifactId());
+            if (artifact != null && StringUtils.hasText(artifact.getDescribe())) {
+                fastArtifact.setDescription(buildDescribe(artifact));
+            }
+
             List<SimpleArtifactInfo> result = items.stream().map(i -> {
                 SimpleArtifactInfo target = new SimpleArtifactInfo();
                 BeanUtils.copyProperties(i, target);
@@ -64,6 +84,22 @@ public class ApiControl {
         } catch (IOException e) {
             throw new RuntimeException("版本查询失败", e);
         }
+    }
+
+    private String buildDescribe(Artifact artifact) throws UnsupportedEncodingException {
+        StringBuilder builder = new StringBuilder();
+
+        String a = "|<a href='http://mvn.coderead.cn/redirect?site=%s'>%s</a> &nbsp ";
+        if (StringUtils.hasText(artifact.getDocSite())) {
+            String encode = URLEncoder.encode(artifact.getDocSite(), "UTF-8");
+            builder.append(String.format(a, encode, "文档"));
+        }
+        if (StringUtils.hasText(artifact.getSourceSite())) {
+            String sourceSite =URLEncoder.encode(artifact.getSourceSite(),"UTF-8") ;
+            builder.append(String.format(a, sourceSite, "源码"));
+        }
+        builder.append(artifact.getDescribe());
+        return builder.toString();
     }
 
     @RequestMapping("/count/version")

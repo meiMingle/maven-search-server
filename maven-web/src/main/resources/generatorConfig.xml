@@ -34,8 +34,8 @@
         </javaClientGenerator>
 
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
-        <table tableName="artifact" domainObjectName="Artifact" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true"></table>
-        <table tableName="artifact_version" domainObjectName="ArtifactVersion" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true"></table>
-        <table tableName="artifact_class" domainObjectName="ArtifactClass" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true"></table>
+        <table tableName="artifact" domainObjectName="Artifact" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+       <!-- <table tableName="artifact_version" domainObjectName="ArtifactVersion" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true"></table>
+        <table tableName="artifact_class" domainObjectName="ArtifactClass" enableInsert="true" enableCountByExample="false" enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true" selectByExampleQueryId="true"></table>-->
     </context>
 </generatorConfiguration>

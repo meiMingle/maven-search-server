@@ -3,7 +3,7 @@
     <div class="divider"> /</div>
     <a class="section" onclick="fillSearchText('${artifactId}')">${artifactId}</a>
     <div class="divider"> /</div>
-    <div class="active section">版本列表</div>
+    <div class="active section">详情</div>
 </div>
 
 <#if docHtml??>
@@ -33,13 +33,24 @@
             });
         </script>
     </div>
-   <#-- <a class="" onclick="showDocFull();">
-        展开更多示例...
-        <i class="angle double down  icon"></i>
-    </a>-->
-
 </#if>
-
+<#if artifact??>
+    <div class="ui message">
+        <div class="ui  link large horizontal celled list">
+            <#setting url_escaping_charset='utf-8'>
+            <#if artifact.officialSite??>
+                <a class="item" target="_blank" href="/redirect?site=${artifact.officialSite?url}"><i class="ui icon home"></i>官网</a>
+            </#if>
+            <#if artifact.docSite??>
+                <a class="item" target="_blank" href="/redirect?site=${artifact.docSite?url}"><i class="ui icon file"></i>文档</a>
+            </#if>
+            <#if artifact.sourceSite??>
+                <a class="item" target="_blank" href="/redirect?site=${artifact.sourceSite?url}"><i class="ui icon code"></i>源码</a>
+            </#if>
+        </div>
+        <div style="color: rgba(0,0,0,.6);line-height: 1.6;">${artifact.describe}</div>
+    </div>
+</#if>
 
 <table class="ui version selectable table">
   <#--  <thead>
@@ -56,7 +67,7 @@
     <tr onclick="doFold($(this))">
         <td>${item.version}</td>
         <td class="right aligned">
-            <i class="download icon" data-url="${item.groupId}/${item.artifactId}/${item.version}" style="z-index: 1000;color: darkgray;"></i>
+            <i class="download link grey icon" data-url="${item.groupId}/${item.artifactId}/${item.version}" style="z-index: 1000;"></i>
         </td>
         <td class="right aligned">${item.attributes.versionCount}</td>
         <td class="right aligned"> ${item.lastModified?number_to_datetime?string("yyyy-MM-dd")!}</td>

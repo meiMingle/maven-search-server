@@ -47,7 +47,6 @@ public class MavenWebApplication {
     @Scheduled(cron = "${index.update.cron}")
     public void update() {
         try {
-
             logger.info("定时任务：远程索引更新");
             indexManager.update();
             logger.info("定时任务：索引加载");
