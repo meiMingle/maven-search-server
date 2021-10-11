@@ -17,12 +17,15 @@ import org.apache.maven.index.ArtifactInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,7 +69,9 @@ public class MavenSearchControl {
 
     @RequestMapping("/search")
     public String doSearch(String keyword, Model model, HttpServletRequest request) {
-        Assert.hasText(keyword,"搜索字符不能为空");
+        if (!StringUtils.hasText(keyword)) {
+            throw new HttpClientErrorException(HttpStatus.NOT_ACCEPTABLE,"参数keyword不能为空");
+        }
         List<SearchResult> results = this.search.search(keyword);
         for (SearchResult searchResult : results) {
             renderingHighlight(searchResult);
@@ -102,7 +107,7 @@ public class MavenSearchControl {
                 model.addAttribute("docHtml", indexDocToHtml);
             }
             Artifact artifact = mapper.getArtifact(String.format("%s:%s", groupId, artifactId));
-            if (artifact.getDescribe() != null) {
+            if (artifact!=null&&artifact.getDescribe() != null) {
                 model.addAttribute("artifact", artifact);//TODO 基本信息
             }
 

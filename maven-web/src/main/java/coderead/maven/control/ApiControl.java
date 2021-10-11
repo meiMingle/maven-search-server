@@ -15,12 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,7 +55,9 @@ public class ApiControl {
     @RequestMapping("/search")
     @ResponseBody
     public List<SimpleSearchResult> doSearch(String keyword) {
-        Assert.hasText(keyword, "搜索字符不能为空");
+        if (!StringUtils.hasText(keyword)) {
+            throw new HttpClientErrorException(HttpStatus.NOT_ACCEPTABLE,"参数keyword不能为空");
+        }
         return this.search.search(keyword).stream()
                 .map(i -> {
                     SimpleSearchResult simpleSearchResult = new SimpleSearchResult();
