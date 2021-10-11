@@ -35,12 +35,18 @@ public class IndexShortSearch implements InitializingBean {
     ArtifactInfoStore artifactInfoStore;
     @Value("${test:false}")
     private boolean testModel;
-
+    @Value("${search.max.KeyWorld:50}")
+    private int maxKeyWorld=50;
     public IndexShortSearch() {
     }
 
 
     public List<SearchResult> search(String keyWorld) {
+        Assert.hasText(keyWorld, "keyWorld 不能为空");
+        if (keyWorld.length() > maxKeyWorld) {
+            logger.warn("搜索字符过长{},已截断至前{}个字符", keyWorld, maxKeyWorld);
+            keyWorld = keyWorld.substring(0, maxKeyWorld);
+        }
         keyWorld = keyWorld.toLowerCase();
         Stream<WordIndex> stream = getIndexByFirst(keyWorld);
         final int[] currentWordIndex = {0}; // 当前匹配的词项索引

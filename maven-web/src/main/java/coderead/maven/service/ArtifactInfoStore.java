@@ -194,6 +194,7 @@ public class ArtifactInfoStore implements InitializingBean {
         for (String s : Arrays.asList(versionStoreFile, indexFile)) {
             File file = new File(s);
             if (!file.exists()) {
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             }
         }

@@ -3,6 +3,7 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
+import cn.hutool.crypto.digest.DigestUtil;
 import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactClass;
 import coderead.maven.bean.ArtifactIndexInfo;
@@ -13,20 +14,22 @@ import coderead.maven.service.MavenIndexManager;
 import coderead.maven.search.IndexShortSearch;
 import coderead.maven.search.SearchResult;
 import org.apache.maven.index.ArtifactInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author 鲁班大叔
@@ -35,7 +38,7 @@ import java.util.stream.Stream;
 @Controller
 public class MavenSearchControl {
     static final String CLASS_REGEX = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
-
+    static final Logger logger = LoggerFactory.getLogger(ApiControl.class);
     @Autowired
     IndexShortSearch search;
     @Autowired
@@ -63,6 +66,7 @@ public class MavenSearchControl {
 
     @RequestMapping("/search")
     public String doSearch(String keyword, Model model, HttpServletRequest request) {
+        Assert.hasText(keyword,"搜索字符不能为空");
         List<SearchResult> results = this.search.search(keyword);
         for (SearchResult searchResult : results) {
             renderingHighlight(searchResult);

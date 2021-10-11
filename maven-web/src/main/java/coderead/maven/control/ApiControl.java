@@ -3,6 +3,7 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
+import cn.hutool.crypto.digest.DigestUtil;
 import coderead.maven.bean.Artifact;
 import coderead.maven.dao.ArtifactMapper;
 import coderead.maven.service.ArtifactInfoStore;
@@ -10,22 +11,26 @@ import coderead.maven.bean.ArtifactIndexInfo;
 import coderead.maven.search.IndexShortSearch;
 import coderead.maven.service.MavenIndexManager;
 import org.apache.maven.index.ArtifactInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +40,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/api")
 public class ApiControl {
-
+    static final Logger logger = LoggerFactory.getLogger(ApiControl.class);
     @Autowired
     IndexShortSearch search;
     @Autowired
@@ -48,6 +53,7 @@ public class ApiControl {
     @RequestMapping("/search")
     @ResponseBody
     public List<SimpleSearchResult> doSearch(String keyword) {
+        Assert.hasText(keyword, "搜索字符不能为空");
         return this.search.search(keyword).stream()
                 .map(i -> {
                     SimpleSearchResult simpleSearchResult = new SimpleSearchResult();
@@ -95,7 +101,7 @@ public class ApiControl {
             builder.append(String.format(a, encode, "文档"));
         }
         if (StringUtils.hasText(artifact.getSourceSite())) {
-            String sourceSite =URLEncoder.encode(artifact.getSourceSite(),"UTF-8") ;
+            String sourceSite = URLEncoder.encode(artifact.getSourceSite(), "UTF-8");
             builder.append(String.format(a, sourceSite, "源码"));
         }
         builder.append(artifact.getDescribe());

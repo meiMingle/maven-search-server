@@ -42,11 +42,15 @@ public class ArtifactMapper {
                         dataClassName);
         return list;
     }
-
+    //TODO 数据为空的问题
     public Artifact getArtifact(String artifact){
         String sql = "select  * from artifact where artifact=?";
-        Artifact result = template.queryForObject(sql, new BeanPropertyRowMapper<>(Artifact.class), artifact);
-        return result;
+        List<Artifact> query = template.query(sql, new BeanPropertyRowMapper<>(Artifact.class), artifact);
+        if (query.isEmpty()) {
+            return null;
+        }
+        Assert.isTrue(query.size()==1,"artifact 应该只有一条记录，但出现了多条 ："+artifact);
+        return query.get(0);
     }
 
 }
