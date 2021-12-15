@@ -3,6 +3,7 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
+import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactClass;
 import coderead.maven.bean.ArtifactIndexInfo;
 import coderead.maven.dao.ArtifactMapper;
@@ -96,6 +97,10 @@ public class MavenSearchControl {
                 String indexDocToHtml = docService.getIndexDocToHtml(groupId, artifactId);
                 model.addAttribute("docHtml", indexDocToHtml);
             }
+            Artifact artifact = mapper.getArtifact(String.format("%s:%s", groupId, artifactId));
+            if (artifact.getDescribe() != null) {
+                model.addAttribute("artifact", artifact);//TODO 基本信息
+            }
 
         } catch (IOException e) {
             throw new RuntimeException("版本查询失败", e);
@@ -174,23 +179,28 @@ public class MavenSearchControl {
 
 
     @RequestMapping("/list")
-    public String list(Integer page, Integer size,Model model) {
+    public String list(Integer page, Integer size, Model model) {
         page = page == null || page < 1 ? 1 : page;
         size = size == null ? 100 : size;
         List<ArtifactIndexInfo> allArtifact = versionCountStore.getAllArtifact(false);
-        List<ArtifactIndexInfo> items= allArtifact
+        List<ArtifactIndexInfo> items = allArtifact
                 .stream()
-                .sorted((a1,a2)->a2.getHot()-a1.getHot())
+                .sorted((a1, a2) -> a2.getHot() - a1.getHot())
                 .skip((page - 1) * size)
                 .limit(size)
                 .collect(Collectors.toList());
-        model.addAttribute("items",items);
-        model.addAttribute("page",page);
-        model.addAttribute("upPage",page-1);
-        model.addAttribute("nextPage",page+1);
-        model.addAttribute("total",allArtifact.size());
+        model.addAttribute("items", items);
+        model.addAttribute("page", page);
+        model.addAttribute("upPage", page - 1);
+        model.addAttribute("nextPage", page + 1);
+        model.addAttribute("total", allArtifact.size());
         return "list";
     }
 
+    @RequestMapping("/redirect")
+    public String redirect(String site) {
+        Assert.hasText(site, "重定向地址不能为空");
+        return "redirect:" + site;
+    }
 
 }

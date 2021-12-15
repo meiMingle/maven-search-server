@@ -43,4 +43,10 @@ public class ArtifactMapper {
         return list;
     }
 
+    public Artifact getArtifact(String artifact){
+        String sql = "select  * from artifact where artifact=?";
+        Artifact result = template.queryForObject(sql, new BeanPropertyRowMapper<>(Artifact.class), artifact);
+        return result;
+    }
+
 }
