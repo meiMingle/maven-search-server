@@ -5,11 +5,14 @@ package coderead.maven.control;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import coderead.maven.bean.Artifact;
+import coderead.maven.bean.ArtifactClass;
 import coderead.maven.dao.ArtifactMapper;
+import coderead.maven.search.SearchResult;
 import coderead.maven.service.ArtifactInfoStore;
 import coderead.maven.bean.ArtifactIndexInfo;
 import coderead.maven.search.IndexShortSearch;
 import coderead.maven.service.MavenIndexManager;
+import coderead.maven.service.MavenSearchService;
 import org.apache.maven.index.ArtifactInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -43,6 +47,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class ApiControl {
     static final Logger logger = LoggerFactory.getLogger(ApiControl.class);
+    static final String CLASS_REGEX = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
+    @Autowired
+    ArtifactMapper mapper;
     @Autowired
     IndexShortSearch search;
     @Autowired
@@ -51,6 +58,8 @@ public class ApiControl {
     ArtifactInfoStore versionCountStore;
     @Autowired
     ArtifactMapper artifactMapper;
+    @Autowired
+    MavenSearchService mavenSearchService;
 
     @RequestMapping("/search")
     @ResponseBody
@@ -81,7 +90,8 @@ public class ApiControl {
             ArtifactInfo fastArtifact = items.get(0);
             Artifact artifact = artifactMapper.getArtifact(fastArtifact.getGroupId() + ":" + fastArtifact.getArtifactId());
             if (artifact != null && StringUtils.hasText(artifact.getDescribe())) {
-                fastArtifact.setDescription(buildDescribe(artifact));
+                String description = buildDescribe(artifact);
+                items.forEach(i-> i.setDescription(description));// 设置描述
             }
 
             List<SimpleArtifactInfo> result = items.stream().map(i -> {
@@ -94,6 +104,14 @@ public class ApiControl {
         } catch (IOException e) {
             throw new RuntimeException("版本查询失败", e);
         }
+    }
+
+    @RequestMapping("/search/class")
+    @ResponseBody
+    public List<ArtifactClass> searchByClass(String keyword, Model model) {
+        Assert.hasText(keyword, "搜索条件不能为空");
+        keyword = keyword.trim();
+        return mavenSearchService.searchByClass(keyword);
     }
 
     private String buildDescribe(Artifact artifact) throws UnsupportedEncodingException {
@@ -126,7 +144,9 @@ public class ApiControl {
         String groupId;
         long lastModified;
         String lastVersion;
-        AtomicInteger hot;// 下载热度
+        int hot;// 下载热度
+        public String describe;// 项目描述
+
 
         public int[] getMatchIndex() {
             return matchIndex;
@@ -176,12 +196,20 @@ public class ApiControl {
             this.lastVersion = lastVersion;
         }
 
-        public AtomicInteger getHot() {
+        public int getHot() {
             return hot;
         }
 
-        public void setHot(AtomicInteger hot) {
+        public void setHot(int hot) {
             this.hot = hot;
+        }
+
+        public String getDescribe() {
+            return describe;
+        }
+
+        public void setDescribe(String describe) {
+            this.describe = describe;
         }
     }
 

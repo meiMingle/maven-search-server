@@ -1,6 +1,8 @@
 package coderead.maven.search;
 
+import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactIndexInfo;
+import coderead.maven.dao.ArtifactMapper;
 import coderead.maven.service.ArtifactInfoStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -33,13 +37,16 @@ public class IndexShortSearch implements InitializingBean {
     WordIndex[][] indexes;
     @Autowired
     ArtifactInfoStore artifactInfoStore;
+
+    @Autowired
+    ArtifactMapper artifactMapper;
+
     @Value("${test:false}")
     private boolean testModel;
     @Value("${search.max.KeyWorld:50}")
     private int maxKeyWorld=50;
     public IndexShortSearch() {
     }
-
 
     public List<SearchResult> search(String keyWorld) {
         Assert.hasText(keyWorld, "keyWorld 不能为空");
@@ -51,7 +58,7 @@ public class IndexShortSearch implements InitializingBean {
         Stream<WordIndex> stream = getIndexByFirst(keyWorld);
         final int[] currentWordIndex = {0}; // 当前匹配的词项索引
         final WordIndex[] currentWord = new WordIndex[1];// 当前匹配词项
-        final int highlight[] = new int[keyWorld.length()];
+        final int[] highlight = new int[keyWorld.length()];
         int keyIndex = 0;
         for (final char c : keyWorld.toCharArray()) {
             final int finalKeyIndex = keyIndex;
@@ -102,6 +109,7 @@ public class IndexShortSearch implements InitializingBean {
         keys = keys.toLowerCase();
         char firstChar = keys.charAt(0);
         int i = isLowerCase(firstChar) ? firstChar - 97 : 26;
+        i=Math.min(i,26);
         return Arrays.stream(indexes[i]);
     }
 

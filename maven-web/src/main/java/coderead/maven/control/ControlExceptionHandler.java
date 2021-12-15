@@ -35,21 +35,21 @@ public class ControlExceptionHandler {
         map.put("path", request.getRequestURI());
         map.put("time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         if (ex instanceof HttpClientErrorException) {
-            HttpClientErrorException clientError= (HttpClientErrorException) ex;
+            HttpClientErrorException clientError = (HttpClientErrorException) ex;
             response.setStatus(clientError.getStatusCode().value());
             map.put("errorCode", response.getStatus());
             map.put("errorMsg", (clientError.getStatusText()));
-            logger.error("客户端请求错误 url: {} 。{}", request.getRequestURI() + "?" + request.getQueryString(),ex.getMessage());
+            logger.error("客户端请求错误 url: {}   msg:{}", request.getRequestURI() + "?" + request.getQueryString(), ex.getMessage());
             if (logger.isDebugEnabled()) {
-                logger.debug("客户端请求错误",ex);
+                logger.debug("客户端请求错误", ex);
             }
-        }else{
+        } else {
             String traceId = DigestUtil.md5Hex16(UUID.randomUUID().toString());
             response.setStatus(response.SC_INTERNAL_SERVER_ERROR);
             map.put("errorCode", response.getStatus());
             map.put("errorMsg", ex.getClass().getSimpleName() + ":" + ex.getMessage());
             map.put("traceId", traceId);
-            logger.error("服务内部错误 url: {} traceId:{}", request.getRequestURI() + "?" + request.getQueryString(),traceId);
+            logger.error("服务内部错误 url: {} traceId:{}", request.getRequestURI() + "?" + request.getQueryString(), traceId);
             logger.error("traceId:" + traceId, ex);
         }
         return map;
