@@ -39,6 +39,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author 鲁班大叔
@@ -227,7 +228,8 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
                     final Document doc = ir.document(i, files);
                     //示例值：ogr.grails|grails-web|2.5.2|NA|jar
                     u = doc.get("u");
-                    if (u == null || !u.endsWith("NA|jar")) {
+                    String su=u;
+                    if (u == null || Stream.of("NA|jar","NA|pom").noneMatch(su::endsWith)) {
                         continue;
                     }
                     split = u.split("\\|");

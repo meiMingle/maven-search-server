@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * 用于记录版本使用数据
  */
 @Component
-@DependsOn("indexShortSearch")
+//@DependsOn("indexShortSearch")
 public class ArtifactInfoStore implements InitializingBean {
     static final Logger logger = LoggerFactory.getLogger(ArtifactInfoStore.class);
 
