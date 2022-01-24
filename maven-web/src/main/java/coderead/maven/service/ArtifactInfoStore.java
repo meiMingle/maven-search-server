@@ -1,12 +1,6 @@
 package coderead.maven.service;
 /**
  * @Copyright 源码阅读网 http://coderead.cn
- * @author 鲁班大叔
- * @date 2021
- * @author 鲁班大叔
- * @date 2021
- * @author 鲁班大叔
- * @date 2021
  */
 
 /**
@@ -194,6 +188,7 @@ public class ArtifactInfoStore implements InitializingBean {
         for (String s : Arrays.asList(versionStoreFile, indexFile)) {
             File file = new File(s);
             if (!file.exists()) {
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             }
         }

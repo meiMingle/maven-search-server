@@ -60,6 +60,16 @@
 			<groupId>org.apache.maven.indexer</groupId>
 			<artifactId>indexer-core</artifactId>
 			<version>6.0.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>guice</artifactId>
+					<groupId>com.google.inject</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>plexus-utils</artifactId>
+					<groupId>org.codehaus.plexus</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- For ResourceFetcher implementation, if used -->
 		<dependency>
@@ -74,11 +84,23 @@
 			<groupId>org.eclipse.sisu</groupId>
 			<artifactId>org.eclipse.sisu.plexus</artifactId>
 			<version>0.3.4</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>plexus-utils</artifactId>
+					<groupId>org.codehaus.plexus</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 			<version>5.0.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>guava</artifactId>
+					<groupId>com.google.guava</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -104,11 +126,18 @@
 			<artifactId>commonmark-ext-gfm-tables</artifactId>
 			<version>0.18.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>cn.hutool</groupId>
+			<artifactId>hutool-all</artifactId>
+			<version>5.7.7</version>
+		</dependency>
 	</dependencies>
+
 
 	<build>
 		<plugins>

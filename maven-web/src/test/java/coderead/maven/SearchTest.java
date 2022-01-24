@@ -27,8 +27,8 @@ public class SearchTest {
         //
         long begin=System.currentTimeMillis();
         ArtifactInfoStore store=new ArtifactInfoStore();
-        store.setIndexFile("/Users/tommy/data/central-index2/short.index");
-        store.setVersionStoreFile("/Users/tommy/data/central-index2/version.txt");
+        store.setIndexFile("/Users/tommy/data/central-index/short.index");
+        store.setVersionStoreFile("/Users/tommy/data/central-index/version.txt");
         store.afterPropertiesSet();
         IndexShortSearch search=new IndexShortSearch( );
         search.setArtifactInfoStore(store);

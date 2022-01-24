@@ -6,6 +6,7 @@ package coderead.maven;
 import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactClass;
 import coderead.maven.dao.ArtifactMapper;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,16 @@ public class DaoTest {
         List<ArtifactClass> list = mapper.findClassBySimpleName("DispatcherServlet");
         assert !list.isEmpty();
     }
+
+    @Test
+    public void getArtifactTest() {
+        Artifact artifact = mapper.getArtifact("org.apache.dubbo:dubbo");
+        assert artifact != null : "artifact不为空";
+        Artifact artifact1 = mapper.getArtifact("org.dubbo:dubbo22222");
+        assert  artifact1 ==null;
+    }
+
+
 
     public static void main(String[] args) throws IOException {
         // 洗数据

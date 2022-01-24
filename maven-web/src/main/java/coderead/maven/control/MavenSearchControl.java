@@ -3,6 +3,7 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
+import cn.hutool.crypto.digest.DigestUtil;
 import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactClass;
 import coderead.maven.bean.ArtifactIndexInfo;
@@ -12,21 +13,27 @@ import coderead.maven.service.ArtifactInfoStore;
 import coderead.maven.service.MavenIndexManager;
 import coderead.maven.search.IndexShortSearch;
 import coderead.maven.search.SearchResult;
+import coderead.maven.service.MavenSearchService;
 import org.apache.maven.index.ArtifactInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author 鲁班大叔
@@ -35,7 +42,7 @@ import java.util.stream.Stream;
 @Controller
 public class MavenSearchControl {
     static final String CLASS_REGEX = "([a-zA-Z_$][a-zA-Z\\d_$]*\\.)*[a-zA-Z_$][a-zA-Z\\d_$]*";
-
+    static final Logger logger = LoggerFactory.getLogger(ApiControl.class);
     @Autowired
     IndexShortSearch search;
     @Autowired
@@ -46,6 +53,8 @@ public class MavenSearchControl {
     ArtifactMapper mapper;
     @Autowired
     ArtifactDocService docService;
+    @Autowired
+    private MavenSearchService mavenSearchService;
 
     @RequestMapping("/index.html")
     public String openSearch(Model model) {
@@ -63,6 +72,9 @@ public class MavenSearchControl {
 
     @RequestMapping("/search")
     public String doSearch(String keyword, Model model, HttpServletRequest request) {
+        if (!StringUtils.hasText(keyword)) {
+            throw new HttpClientErrorException(HttpStatus.NOT_ACCEPTABLE,"参数keyword不能为空");
+        }
         List<SearchResult> results = this.search.search(keyword);
         for (SearchResult searchResult : results) {
             renderingHighlight(searchResult);
@@ -98,7 +110,7 @@ public class MavenSearchControl {
                 model.addAttribute("docHtml", indexDocToHtml);
             }
             Artifact artifact = mapper.getArtifact(String.format("%s:%s", groupId, artifactId));
-            if (artifact.getDescribe() != null) {
+            if (artifact!=null&&artifact.getDescribe() != null) {
                 model.addAttribute("artifact", artifact);//TODO 基本信息
             }
 
@@ -143,35 +155,7 @@ public class MavenSearchControl {
     public String searchByClass(String keyword, Model model) {
         Assert.hasText(keyword, "搜索条件不能为空");
         keyword = keyword.trim();
-        List<ArtifactClass> list;
-        // 首字母大写，且不包含 .    基于类名查找
-
-        if (!keyword.matches(CLASS_REGEX)) { //非法的类名
-            list = new ArrayList<>();
-        } else if (keyword.split("\\.").length > 2) {
-            list = mapper.findClassByFullName(keyword);
-        } else { // 基于类名搜索
-            list = mapper.findClassBySimpleName(keyword);
-        }
-        list.forEach(a -> {
-            ArtifactIndexInfo artifact = versionCountStore.findArtifact(a.getGroupId(), a.getArtifactId());
-            if (artifact != null) {
-                a.setVersionModify(new Date(artifact.getLastModified()));//版本变更时间
-            }
-        });
-
-        list.sort((o1, o2) -> {
-            ArtifactIndexInfo a1 = versionCountStore.findArtifact(o1.getGroupId(), o1.getArtifactId());
-            ArtifactIndexInfo a2 = versionCountStore.findArtifact(o2.getGroupId(), o2.getArtifactId());
-            if (a1 == null || a2 == null) {
-                return 1;
-            }
-            int result = a2.hot - a1.hot;
-            if (result == 0) {//基于时间倒序
-                result = a2.getLastModified() > a1.getLastModified() ? 1 : -1;
-            }
-            return result;
-        });
+        List<ArtifactClass> list = mavenSearchService.searchByClass(keyword);
         model.addAttribute("results", list);
         // 是否包含特殊字符
         return "classResultJson";
