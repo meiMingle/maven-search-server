@@ -40,6 +40,7 @@ public class MavenWebApplication {
     ArtifactInfoStore versionCountStore;
 
     public static void main(String[] args) {
+
         SpringApplication.run(MavenWebApplication.class, args);
     }
 

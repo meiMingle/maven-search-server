@@ -3,11 +3,12 @@ package coderead.maven.control;
  * @Copyright 源码阅读网 http://coderead.cn
  */
 
-import cn.hutool.crypto.digest.DigestUtil;
 import coderead.maven.bean.Artifact;
 import coderead.maven.bean.ArtifactClass;
+import coderead.maven.control.vo.SimpleArtifactInfo;
+import coderead.maven.control.vo.SimpleSearchResult;
+import coderead.maven.control.vo.SimpleSearchResultNew;
 import coderead.maven.dao.ArtifactMapper;
-import coderead.maven.search.SearchResult;
 import coderead.maven.service.ArtifactInfoStore;
 import coderead.maven.bean.ArtifactIndexInfo;
 import coderead.maven.search.IndexShortSearch;
@@ -23,20 +24,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -63,13 +58,18 @@ public class ApiControl {
 
     @RequestMapping("/search")
     @ResponseBody
-    public List<SimpleSearchResult> doSearch(String keyword) {
+    public List<SimpleSearchResult> doSearch(String keyword, String appVersion) {
         if (!StringUtils.hasText(keyword)) {
             throw new HttpClientErrorException(HttpStatus.NOT_ACCEPTABLE,"参数keyword不能为空");
         }
         return this.search.search(keyword).stream()
                 .map(i -> {
-                    SimpleSearchResult simpleSearchResult = new SimpleSearchResult();
+                    SimpleSearchResult simpleSearchResult;
+                    if (!StringUtils.hasText(appVersion)) {
+                        simpleSearchResult = new SimpleSearchResult();
+                    }else {
+                        simpleSearchResult = new SimpleSearchResultNew();
+                    }
                     ArtifactIndexInfo item = i.getItem();
                     simpleSearchResult.matchIndex = i.getHighlight();
                     simpleSearchResult.matchText = item.getArtifactId() + ":" + item.getGroupId();
@@ -137,155 +137,8 @@ public class ApiControl {
         return "OK";
     }
 
-    private class SimpleSearchResult implements Serializable {
-        int matchIndex[];    // 匹配索引
-        String matchText;   // 匹配文本
-        String artifactId;
-        String groupId;
-        long lastModified;
-        String lastVersion;
-        int hot;// 下载热度
-        public String describe;// 项目描述
 
 
-        public int[] getMatchIndex() {
-            return matchIndex;
-        }
 
-        public void setMatchIndex(int[] matchIndex) {
-            this.matchIndex = matchIndex;
-        }
-
-        public String getMatchText() {
-            return matchText;
-        }
-
-        public void setMatchText(String matchText) {
-            this.matchText = matchText;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public void setArtifactId(String artifactId) {
-            this.artifactId = artifactId;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public void setGroupId(String groupId) {
-            this.groupId = groupId;
-        }
-
-        public long getLastModified() {
-            return lastModified;
-        }
-
-        public void setLastModified(long lastModified) {
-            this.lastModified = lastModified;
-        }
-
-        public String getLastVersion() {
-            return lastVersion;
-        }
-
-        public void setLastVersion(String lastVersion) {
-            this.lastVersion = lastVersion;
-        }
-
-        public int getHot() {
-            return hot;
-        }
-
-        public void setHot(int hot) {
-            this.hot = hot;
-        }
-
-        public String getDescribe() {
-            return describe;
-        }
-
-        public void setDescribe(String describe) {
-            this.describe = describe;
-        }
-    }
-
-    private static class SimpleArtifactInfo implements Serializable {
-        public String artifactId;
-        public String groupId;
-        public String version;
-        public long lastModified = -1;
-        public String packaging;
-        public String name;
-        public String description;
-        public int downloads;
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public void setArtifactId(String artifactId) {
-            this.artifactId = artifactId;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public void setGroupId(String groupId) {
-            this.groupId = groupId;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        public long getLastModified() {
-            return lastModified;
-        }
-
-        public void setLastModified(long lastModified) {
-            this.lastModified = lastModified;
-        }
-
-        public String getPackaging() {
-            return packaging;
-        }
-
-        public void setPackaging(String packaging) {
-            this.packaging = packaging;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public int getDownloads() {
-            return downloads;
-        }
-
-        public void setDownloads(int downloads) {
-            this.downloads = downloads;
-        }
-    }
 
 }
