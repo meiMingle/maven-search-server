@@ -24,21 +24,21 @@ import org.apache.maven.wagon.observers.AbstractTransferListener;
 import org.codehaus.plexus.DefaultContainerConfiguration;
 import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.nio.file.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
 
 /**
@@ -58,6 +58,8 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
     String indexRepositoryRemoteUrl;
     @Value("${index.remote.update.url}")
     String indexRepositoryRemoteUpdateUrl;
+    @Value("${local.index.cache.path}")
+    String localIndexCachePath;
 
 
     private IndexUpdater indexUpdater; // 索引更新组件
@@ -169,9 +171,12 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
                 logger.info("{}-索引下载成功：{}", planId, transferEvent);
             }
         };
-        ResourceFetcher resourceFetcher = new WagonHelper.WagonFetcher(httpWagon, listener, null, null);
+//        ResourceFetcher resourceFetcher = new WagonHelper.WagonFetcher(httpWagon, listener, null, null);
+        ResourceFetcher resourceFetcher = new DefaultIndexUpdater.FileFetcher(Paths.get(localIndexCachePath).toFile());
         Date centralContextCurrentTimestamp = centralContext.getTimestamp();
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(centralContext, resourceFetcher);
+        updateRequest.setOffline(true);
+        updateRequest.setLocalIndexCacheDir(Paths.get(localIndexCachePath).toFile());
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
         if (updateResult.isFullUpdate()) {
             logger.info("{}-完成了全量更新", planId);
@@ -210,10 +215,11 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
             Set<String> files = new HashSet<>();
             files.add("u");
             files.add("m");
-            final int[] progress = {0, 0, ir.maxDoc()};
+            final LongAdder[] progress = {new LongAdder(), new LongAdder()};
+            final int maxDoc =  ir.maxDoc();
             new Thread(() -> {
-                while (progress[0] < progress[2]) {
-                    logger.info("{}快捷索加载进度:{}  完成数:{}", planId, progress[0] * 100 / progress[2], progress[1]);
+                while (progress[0].intValue() < maxDoc) {
+                    logger.info("{}快捷索加载进度:{}%  完成数:{} ", planId, Math.round(progress[0].doubleValue() / maxDoc * 10000) / 100.0, progress[1]);
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
@@ -223,13 +229,13 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
             }).start();
 
             for (int i = 0; i < ir.maxDoc(); i++) {
-                progress[0]++;
+                progress[0].increment();
                 if (liveDocs == null || liveDocs.get(i)) {
                     final Document doc = ir.document(i, files);
                     //示例值：ogr.grails|grails-web|2.5.2|NA|jar
                     u = doc.get("u");
                     String su=u;
-                    if (u == null || Stream.of("NA|jar","NA|pom").noneMatch(su::endsWith)) {
+                    if (u == null || Stream.of("NA|jar","NA|pom","sources|jar").noneMatch(su::endsWith)) {
                         continue;
                     }
                     split = u.split("\\|");
@@ -237,6 +243,10 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
                         logger.warn("{}快捷索引加载失败，错误的数据格式{}", planId, u);
                         continue;
                     }
+                    if (split[0].contains(" ")) continue;
+                    if (split[1].contains(" ")) continue;
+                    if (split[2].contains(" ")) continue;
+
                     key = split[0].trim() + " " + split[1].trim();
                     try {
                         artifact = ArtifactIndexInfo.parse(key + " " + doc.get("m") + " " + split[2].trim() + " false");
@@ -248,7 +258,7 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
                             artifact.lastModified > infos.get(key).lastModified) {
                         infos.put(key, artifact);
                     }
-                    progress[1]++;
+                    progress[1].increment();
                 }
 
             }
