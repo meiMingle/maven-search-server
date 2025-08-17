@@ -4,8 +4,10 @@ package coderead.maven;
  */
 
 import coderead.maven.bean.ArtifactIndexInfo;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.MultiFields;
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Stream;
 
 /**
@@ -45,7 +48,7 @@ public class MavenIndexTest {
         config.setClassPathScanning(PlexusConstants.SCANNING_INDEX);
         this.plexusContainer = new DefaultPlexusContainer(config);
         this.indexer = plexusContainer.lookup(Indexer.class);
-        File centralIndexDir = new File("/Users/tommy/data/central-index");
+        File centralIndexDir = new File("C:\\tommy\\data\\central-index");
         List<IndexCreator> indexers = new ArrayList<>();
         indexers.add(plexusContainer.lookup(IndexCreator.class, "min"));
         indexers.add(plexusContainer.lookup(IndexCreator.class, "jarContent"));
@@ -112,16 +115,37 @@ public class MavenIndexTest {
             Set<String> files = new HashSet<>();
             files.add("u");
             files.add("m");
+            final LongAdder[] progress = {new LongAdder(), new LongAdder()};
+            final int maxDoc =  ir.maxDoc();
+            new Thread(() -> {
+                while (progress[0].intValue() < maxDoc) {
+                    System.out.printf("快捷索加载进度:%s%% 总条数:%s 已处理条数:%s 有效处理条数:%s 有效索引条数:%s %n",  Math.round(progress[0].doubleValue() / maxDoc * 10000) / 100.0,maxDoc, progress[0],progress[1],infos.size());
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
             for (int i = 0; i < ir.maxDoc(); i++) {
+             progress[0].increment();
                 if (liveDocs == null || liveDocs.get(i)) {
                     final Document doc = ir.document(i, files);
                     //示例值：ogr.grails|grails-web|2.5.2|NA|jar
                     u = doc.get("u");
                     String su=u;
-                    if (u == null || Stream.of("NA|jar","NA|pom").noneMatch(su::endsWith)) {
+                    if (u == null || Stream.of("NA|jar","NA|pom","sources|jar").noneMatch(su::endsWith)) {
                         continue;
                     }
                     split = u.split("\\|");
+                    if (split.length < 5) {
+                        System.out.println("错误的数据格式:"+u);
+                        continue;
+                    }
+                    if (split[0].contains(" ")) continue;
+                    if (split[1].contains(" ")) continue;
+                    if (split[2].contains(" ")) continue;
+
                     key = split[0].trim() + " " + split[1].trim();
                     try {
                         artifact = ArtifactIndexInfo.parse(key + " " + doc.get("m") + " " + split[2].trim() + " false");
@@ -133,6 +157,7 @@ public class MavenIndexTest {
                     if (!infos.containsKey(key) ||
                             artifact.lastModified > infos.get(key).lastModified) {
                         infos.put(key, artifact);
+                        progress[1].increment();
                     }
                 }
 

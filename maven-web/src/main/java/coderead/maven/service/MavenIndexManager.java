@@ -219,7 +219,7 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
             final int maxDoc =  ir.maxDoc();
             new Thread(() -> {
                 while (progress[0].intValue() < maxDoc) {
-                    logger.info("{}快捷索加载进度:{}%  完成数:{} ", planId, Math.round(progress[0].doubleValue() / maxDoc * 10000) / 100.0, progress[1]);
+                    logger.info("{}快捷索加载进度:{}% 总条数:{} 已处理条数:{} 有效处理条数:{} 有效索引条数:{}", planId, Math.round(progress[0].doubleValue() / maxDoc * 10000) / 100.0,maxDoc, progress[0],progress[1],infos.size());
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
@@ -257,8 +257,8 @@ public class MavenIndexManager implements DisposableBean, InitializingBean {
                     if (!infos.containsKey(key) ||
                             artifact.lastModified > infos.get(key).lastModified) {
                         infos.put(key, artifact);
+                        progress[1].increment();
                     }
-                    progress[1].increment();
                 }
 
             }
