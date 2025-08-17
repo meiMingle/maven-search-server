@@ -39,19 +39,20 @@ public class ArtifactMapperTest {
     @Test
     public void saveTest() throws IOException {
         List<Artifact> artifact = artifactMapper.findArtifactByState(0L, ArtifactMapper.unIndex, 2);
-        String url="https://archiva-maven-storage-prod.oss-cn-beijing.aliyuncs.com/repository/central";
+        String url="https://aliyun-osm-maven.oss-cn-shanghai.aliyuncs.com/repository/central";
         List<ArtifactClass> artifactClasses = indexManager.downloadJar(url,artifact.get(0));
         artifactMapper.updateArtifactClass(artifactClasses);
     }
 
     @Test
     public void downloadTest() throws IOException {
-        String url="https://archiva-maven-storage-prod.oss-cn-beijing.aliyuncs.com/repository/central";
+//        String url="https://archiva-maven-storage-prod.oss-cn-beijing.aliyuncs.com/repository/central";
+        String url="https://aliyun-osm-maven.oss-cn-shanghai.aliyuncs.com/repository/central";
 //        String url="https://repo1.maven.org/maven2";
 
         Artifact artifact1 = new Artifact();
-        artifact1.setArtifact("org.apache.karaf.archetypes:karaf-blueprint-archetype");
-        artifact1.setLastVersion("4.3.2");
+        artifact1.setArtifact("cn.hutool:hutool-all");
+        artifact1.setLastVersion("5.8.38");
         List<ArtifactClass> artifactClasses = indexManager.downloadJar(url,artifact1);
         artifactMapper.updateArtifactClass(artifactClasses);
     }
