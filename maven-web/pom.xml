@@ -45,9 +45,14 @@
 			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 		<!-- mysql数据库驱动 -->
-		<dependency>
+<!--		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
+		</dependency>-->
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+			<version>3.5.4</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -55,7 +60,6 @@
 			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.apache.maven.indexer</groupId>
 			<artifactId>indexer-core</artifactId>
